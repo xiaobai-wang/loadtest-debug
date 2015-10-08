@@ -1,5 +1,6 @@
 package com.demandware.xlt.actions.order;
 
+import java.net.URL;
 import java.util.List;
 import java.util.Map;
 
@@ -13,14 +14,20 @@ import com.demandware.xlt.util.XHR;
 import com.demandware.xlt.validators.Validator;
 import com.gargoylesoftware.htmlunit.html.HtmlElement;
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
+import com.xceptance.xlt.api.util.XltLogger;
 
 /**
  * Adds the currently shown product or more specifically one of its variations to the cart.
  * 
- * @author Matthias Ullrich (Xceptance Software Technologies GmbH)
+ * @author Xiaobai Wang
  */
 public class AddToCart extends AbstractAjaxAction
 {
+    /**
+     * Number of initial cart items count. The cart may contain the same item with quantity > 1
+     */
+    private int total_items_count_in_cart;
+
     /**
      * Search and return a list of all add to cart forms of a product page. In case of a single product page this is
      * just 1 form. Product set pages usually have several.</br>
@@ -59,10 +66,6 @@ public class AddToCart extends AbstractAjaxAction
         return forms;
     }
 
-    /**
-     * Number of initial cart items.
-     */
-    private int items_in_cart;
 
     /**
      * {@inheritDoc}
@@ -71,7 +74,7 @@ public class AddToCart extends AbstractAjaxAction
     protected void doExecute() throws Exception
     {
         // Remember the number of cart items.
-        this.items_in_cart = Page.getItemsInMiniCart();
+        this.total_items_count_in_cart = Page.getNumItemsInMiniCartByAjax();
 
         // Get the add-to-cart form(s).
         final List<HtmlForm> addToCartForms = getAddToCartForms();
@@ -97,8 +100,10 @@ public class AddToCart extends AbstractAjaxAction
                 xhr.GET().params(params);
             }
             xhr.replaceContentOf(minicart).fire();
-        }
-    }
+
+        } // for
+
+    } // doExecute
 
     /**
      * {@inheritDoc}
@@ -109,10 +114,19 @@ public class AddToCart extends AbstractAjaxAction
         // Check if add-to-cart was successful
         // This can be achieved by comparing the number of cart items, the cart totals that have to be higher, or any
         // other characteristic. In this case we use the cart item count.
-        Assert.assertTrue("Item: " + Context.getPage().getUrl() + " was not added to cart", Page.getItemsInMiniCart() > items_in_cart);
+        URL itemURL = Context.getPage().getUrl();
+        int CurrentNumItemsInCart = Page.getNumItemsInMiniCartByAjax();
+        XltLogger.runTimeLogger.debug("CurrentNumItemsInCart = " + CurrentNumItemsInCart);
+        XltLogger.runTimeLogger.debug("total_items_count_in_cart = " + total_items_count_in_cart);
+
+        Assert.assertTrue("Item: " + itemURL + " was not added to cart",
+                          CurrentNumItemsInCart > total_items_count_in_cart);
 
         // Check if we are still on a Product Page
         Validator.validateCommonPage();
-        Assert.assertTrue("Page is no valid product page.", Page.isSingleProductDetailPage() || Page.isProductSetPage());
+        Boolean singleProdDetailPage = Page.isSingleProductDetailPage();
+        Boolean productSetPage = Page.isProductSetPage();
+
+        Assert.assertTrue("Page is no valid product page.", singleProdDetailPage || productSetPage);
     }
 }

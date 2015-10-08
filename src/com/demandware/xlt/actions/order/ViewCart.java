@@ -8,7 +8,7 @@ import com.gargoylesoftware.htmlunit.html.HtmlElement;
 /**
  * Access the cart page.
  * 
- * @author Matthias Ullrich (Xceptance Software Technologies GmbH)
+ * @author Xiaobai Wang
  */
 public class ViewCart extends AbstractHtmlPageAction
 {

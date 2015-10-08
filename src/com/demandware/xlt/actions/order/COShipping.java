@@ -32,7 +32,7 @@ public class COShipping extends AbstractHtmlPageAction
         // Submit the form.
         final HtmlElement submitbutton = Page.findAsserted("No submit button found in shipping address form.")
                                              .byId("dwfrm_singleshipping_shippingAddress")
-                                             .byCss("button[name=dwfrm_singleshipping_shippingAddress_save]")
+                                             .byXPath("./fieldset/div/button[@id='btn_submit_shipping']")
                                              .single();
         loadPageByClick(submitbutton);
     }
@@ -63,10 +63,11 @@ public class COShipping extends AbstractHtmlPageAction
         AjaxUtils.getApplicableShippingMethods();
 
         // Fill ZIP code.
-        FormUtils.setInputValueByID("dwfrm_singleshipping_shippingAddress_addressFields_postal", address.getZipCode());
+        FormUtils.setInputValueByID("dwfrm_singleshipping_shippingAddress_addressFields_zip", address.getZipCode());
 
         // Update shipping methods.
         AjaxUtils.getApplicableShippingMethods();
+        AjaxUtils.updateShippingMethodsList();
 
         // Fill phone number.
         FormUtils.setInputValueByID("dwfrm_singleshipping_shippingAddress_addressFields_phone", address.getPhoneNo());

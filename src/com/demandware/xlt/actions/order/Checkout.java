@@ -10,7 +10,7 @@ import com.gargoylesoftware.htmlunit.html.HtmlElement;
 /**
  * Goto Checkout page.
  * 
- * @author Matthias Ullrich (Xceptance Software Technologies GmbH)
+ * @author Xiaobai Wang
  */
 public class Checkout extends AbstractHtmlPageAction
 {
@@ -24,8 +24,10 @@ public class Checkout extends AbstractHtmlPageAction
         Assert.assertFalse("Try to checkout an empty cart.", Page.isMiniCartEmpty());
 
         // Click the 'Checkout' button.
-        final HtmlElement checkoutButton = Page.find().byXPath("id('checkout-form')/fieldset/button[@name='dwfrm_cart_checkoutCart']")
-                                               .asserted("No checkout button found on page.").random();
+        final HtmlElement checkoutButton = Page.find()
+                                               .byXPath("id('checkout-form')/fieldset/button[@name='dwfrm_cart_checkoutCart']")
+                                               .asserted("No checkout button found on page.")
+                                               .random();
         loadPageByClick(checkoutButton);
     }
 

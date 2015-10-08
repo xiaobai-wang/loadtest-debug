@@ -9,13 +9,12 @@ import com.demandware.xlt.util.SearchOption;
 import com.demandware.xlt.util.XHR;
 import com.demandware.xlt.validators.Validator;
 import com.gargoylesoftware.htmlunit.WebResponse;
-import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.xceptance.xlt.api.util.XltRandom;
 
 /**
  * Enter a given search phrase in the site's search bar and submit.
  * 
- * @author Matthias Ullrich (Xceptance Software Technologies GmbH)
+ * @author Xiaobai Wang
  */
 public class Search extends AbstractHtmlPageAction
 {
@@ -23,7 +22,7 @@ public class Search extends AbstractHtmlPageAction
     private final String phrase;
 
     /** Search form. */
-    private HtmlForm searchForm;
+    // private HtmlForm searchForm;
 
     /** Search option ({@link SearchOption#HITS} or {@link SearchOption#NO_HITS} ). */
     private final SearchOption searchOption;

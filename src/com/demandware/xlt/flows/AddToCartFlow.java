@@ -9,7 +9,7 @@ import com.demandware.xlt.util.SafetyBreak;
  * Browses the catalog, adds a number of products (respectively variations of products) to the cart and opens the cart
  * page finally.
  * 
- * @author Matthias Ullrich (Xceptance Software Technologies GmbH)
+ * @author Xiaobai Wang
  */
 public class AddToCartFlow extends AbstractFlow
 {
@@ -26,7 +26,8 @@ public class AddToCartFlow extends AbstractFlow
         final int nrOfProducts = Context.getConfiguration().getNumberOfProductsForAddToCart();
 
         // Current number of cart items.
-        int itemsInMiniCart = Page.getItemsInMiniCart();
+        // int itemsInMiniCart = Page.getItemsInMiniCart();
+        int itemsInMiniCart = Page.getNumItemsInMiniCartByAjax();
 
         // Add another item to cart.
         while (itemsInMiniCart < nrOfProducts)
@@ -43,7 +44,7 @@ public class AddToCartFlow extends AbstractFlow
                 new AddToCart().run();
 
                 // Check if adding the product was successful.
-                int newItemsInMiniCart = Page.getItemsInMiniCart();
+                int newItemsInMiniCart = Page.getNumItemsInMiniCartByAjax();
                 if (itemsInMiniCart < newItemsInMiniCart)
                 {
                     // Reset the attempts-checker.
@@ -61,7 +62,7 @@ public class AddToCartFlow extends AbstractFlow
                     // may have issues.
                     Context.logForDebug("The product(s) on this detail/quickview/set page could not be added to the cart.");
                 }
-            }
-        }
-    }
+            } // else
+        } // while
+    } // run
 }

@@ -11,11 +11,12 @@ import com.gargoylesoftware.htmlunit.html.HtmlElement;
 import com.gargoylesoftware.htmlunit.html.HtmlInput;
 import com.xceptance.common.util.RegExUtils;
 import com.xceptance.xlt.api.util.elementLookup.HPU;
+import com.xceptance.xlt.api.util.elementLookup.Results;
 
 /**
  * Adjust the item quantity on a cart page to move the cart totals into a potentially configured range.
  * 
- * @author Matthias Ullrich (Xceptance Software Technologies GmbH)
+ * @author Xiaobai Wang
  */
 public class ChangeLineItemQuantity extends AbstractAjaxAction
 {
@@ -118,9 +119,18 @@ public class ChangeLineItemQuantity extends AbstractAjaxAction
      */
     private static String getCartTotals()
     {
-        return Page.getPrimaryContentContainerLocator().asserted("Cart totals not found")
-                   .byCss(".order-totals-table .order-total>td:last-child")
-                   .last().getTextContent();
+
+        Results cartTotals = Page.find().byId("main")
+                                 .byXPath("./div[contains(@class, 'cart-order-totals')]/table")
+                                 .byXPath("./tbody/tr[@class='order-total']/td[@class='notranslate']");
+
+        String cartTotalsStr = cartTotals.single().getTextContent();
+        return cartTotalsStr;
+
+        // return Page.getPrimaryContentContainerLocator().asserted("Cart totals not found")
+        // .byCss(".order-totals-table .order-total>td:last-child")
+        // .last().getTextContent();
+
     }
 
     /**

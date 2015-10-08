@@ -4,7 +4,7 @@ import org.junit.Assert;
 
 import com.demandware.xlt.actions.catalog.ProductDetailView;
 import com.demandware.xlt.actions.catalog.QuickView;
-import com.demandware.xlt.actions.catalog.RefineByCategory;
+//import com.demandware.xlt.actions.catalog.RefineByCategory;
 import com.demandware.xlt.actions.catalog.SelectCategory;
 import com.demandware.xlt.actions.catalog.SelectTopCategory;
 import com.demandware.xlt.util.Context;
@@ -17,7 +17,7 @@ import com.xceptance.xlt.api.util.XltRandom;
 /**
  * Browse the catalog and view product details.
  * 
- * @author Matthias Ullrich (Xceptance Software Technologies GmbH)
+ * @author Xiaobai Wang
  */
 public class BrowsingFlow extends AbstractFlow
 {
@@ -108,33 +108,34 @@ public class BrowsingFlow extends AbstractFlow
 
         // While the resulting page is not a product grid or a detail page refine to get there. Even if the the current
         // page is a product grid page the category might be refined to a certain configured probability.
-        boolean refinementDesired = XltRandom.nextBoolean(Context.getConfiguration().getCategoryRefinementProbability());
+        // boolean refinementDesired =
+        // XltRandom.nextBoolean(Context.getConfiguration().getCategoryRefinementProbability());
         // Define a safety break to not browse endlessly.
-        final SafetyBreak categoryRefinementBreak = new SafetyBreak(4);
-        while (refinementDesired && Page.isGridOrProductPage())
-        {
+        // final SafetyBreak categoryRefinementBreak = new SafetyBreak(4);
+        // while (refinementDesired && Page.isGridOrProductPage())
+        // {
             // Check the limit of attempts.
-            if (categoryRefinementBreak.reached())
-            {
-                break;
-            }
+        // if (categoryRefinementBreak.reached())
+        // {
+        // break;
+        // }
 
             // If a grid or product page is reached, don't request further refining.
-            refinementDesired = false;
+        // refinementDesired = false;
 
             // Refine by category.
-            if (RefineByCategory.isPossible())
-            {
-                new RefineByCategory().run();
-            }
-            else
-            {
+        // if (RefineByCategory.isPossible())
+        // {
+        // new RefineByCategory().run();
+        // }
+        // else
+        // {
                 // Log for development and debugging. If there are to much logging messages, the XPath or the catalog
                 // may have issues.
-                Context.logForDebug("No category refinement possible.");
+        // Context.logForDebug("No category refinement possible.");
                 // Cancel if there's no category to refine by.
-                break;
-            }
-        }
-    }
+        // break;
+        // }
+        // }
+    } // browse()
 }

@@ -1,20 +1,24 @@
 package com.demandware.xlt.actions.catalog;
 
+import java.util.Random;
+
 import com.demandware.xlt.actions.AbstractHtmlPageAction;
 import com.demandware.xlt.util.Page;
 import com.demandware.xlt.validators.Validator;
 import com.gargoylesoftware.htmlunit.html.HtmlElement;
-import com.xceptance.common.util.RegExUtils;
 import com.xceptance.xlt.api.engine.Session;
 import com.xceptance.xlt.api.util.elementLookup.Results;
 
 /**
  * Selects a top category from the top navigation menu.
  * 
- * @author Matthias Ullrich (Xceptance Software Technologies GmbH)
+ * @author Xiaobai Wang
  */
 public class SelectTopCategory extends AbstractHtmlPageAction
 {
+
+    public static final String baseUrl = "http://shop.gopro.com";
+
     /**
      * Locate top category links.
      * 
@@ -54,26 +58,22 @@ public class SelectTopCategory extends AbstractHtmlPageAction
         // Get a link from the Page
 
         // topCategory = getRandomTopCategoryLink();
-        topCategoryURL = "http://shop.gopro.com";
-        String topCategory = "";
-        topCategory = RegExUtils.getFirstMatch(getRandomTopCategoryLink().getAttribute("href"), "\\/.+\\/");
+        // topCategoryURL = "http://shop.gopro.com";
+
+        String topCategoryArray[] =
+        {
+            "cameras", "mounts", "accessories", "shopbyactivity"
+        };
+
+        int idx = new Random().nextInt(topCategoryArray.length);
+        String topCategory = topCategoryArray[idx];
+
+        // String topCategory = "mounts"; // Select a specific category for debugging
+        // topCategory = RegExUtils.getFirstMatch(getRandomTopCategoryLink().getAttribute("href"), "\\/.+\\/");
         System.out.println("topCategory: " + topCategory);
 
-        topCategory = "/cameras/"; // temp
-
-        if (!topCategory.equals(""))
-        {
-            // while (topCategory.equals("/cameras/") || topCategory.equals("/professional/") ||
-            // topCategory.equals("/softwareandapp/")
-            // || topCategory.equals(""))
-            while (topCategory.equals("/professional/") || topCategory.equals("/softwareandapp/") || topCategory.equals(""))
-            {
-                // Do not handle "professional" and "softwareandapp" categories and get another category
-                topCategory = RegExUtils.getFirstMatch(getRandomTopCategoryLink().getAttribute("href"), "\\/.+\\/");
-            } // while
-        } // if
-
-        topCategoryURL = topCategoryURL.concat(topCategory);
+        topCategoryURL = buildTopCategoryUrl(topCategory);
+        // topCategoryURL = topCategoryURL.concat(topCategory);
 
         // Click the chosen top category.
         // loadPageByClick(topCategory);
@@ -109,5 +109,10 @@ public class SelectTopCategory extends AbstractHtmlPageAction
         {
             Session.logEvent(SelectTopCategory.class.getSimpleName() + " - Unexpected page", topCategoryURL);
         }
+    }
+
+    protected String buildTopCategoryUrl(String uri)
+    {
+        return baseUrl + "/on/demandware.store/Sites-GoPro-Site/default/Search-Show?cgid=" + uri;
     }
 }

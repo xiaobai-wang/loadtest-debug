@@ -302,6 +302,14 @@ public final class AjaxUtils
      */
     private static Map<String, String> getShippingAddressParams(final HtmlPage page)
     {
+
+        String myURL = Context.getPage().getUrl().toString();
+        // XltLogger.runTimeLogger.debug("# getShippingAddressParams -- debug -- Body BEGIN");
+        // XltLogger.runTimeLogger.debug("HtmlPage = " + page.toString());
+        // XltLogger.runTimeLogger.debug("myURL = " + myURL);
+        // XltLogger.runTimeLogger.debug(Context.getPage().asXml());
+        // XltLogger.runTimeLogger.debug("# getShippingAddressParams -- debug -- Body END");
+
         final By findInPage = HPU.findAsserted().in(page);
 
         // // Look up address1.
@@ -323,7 +331,7 @@ public final class AjaxUtils
                                       .<HtmlInput> first().getValueAttribute();
 
         // Look up ZIP.
-        final String postalCode = findInPage.byId("dwfrm_singleshipping_shippingAddress_addressFields_postal")
+        final String postalCode = findInPage.byId("dwfrm_singleshipping_shippingAddress_addressFields_zip")
                                             .<HtmlInput> first().getValueAttribute();
 
         // Summarize parameters.

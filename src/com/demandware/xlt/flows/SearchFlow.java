@@ -8,7 +8,7 @@ import com.xceptance.xlt.api.util.XltRandom;
 /**
  * Search for a phrase, browse the results and view a result's details.
  * 
- * @author Matthias Ullrich (Xceptance Software Technologies GmbH)
+ * @author Xiaobai Wang
  */
 public class SearchFlow extends AbstractFlow
 {

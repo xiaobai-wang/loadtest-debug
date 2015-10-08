@@ -9,6 +9,7 @@ import com.gargoylesoftware.htmlunit.html.DomElement;
 import com.xceptance.common.util.RegExUtils;
 import com.xceptance.xlt.api.engine.Session;
 import com.xceptance.xlt.api.util.XltLogger;
+import com.xceptance.xlt.api.util.elementLookup.Results;
 import com.xceptance.xlt.api.validators.StandardValidator;
 
 public class Validator
@@ -31,7 +32,6 @@ public class Validator
             Assert.assertTrue("Page without header found", Page.hasHeader());
             Assert.assertTrue("Page without main container found", Page.hasMainContainer());
             Assert.assertTrue("Page without primary content container  found", Page.hasPrimaryContentContainer());
-            Assert.assertTrue("Page without secondary content container found", Page.hasSecondaryContentContainer());
         }
         else
         {
@@ -40,7 +40,6 @@ public class Validator
             Page.find().byXPath("//*[@id='" + Page.NAVIGATION_ID + "']").single();
             Page.find().byXPath("//*[@id='" + Page.MAIN_CONTAINER_ID + "']").asserted().single();
             Page.find().byXPath("//*[@id='" + Page.PRIMARY_CONTENT_CONTAINER_ID + "']").asserted().single();
-            Page.find().byXPath("//*[@id='" + Page.SECONDARY_CONTENT_CONTAINER_ID + "']").asserted().single();
         }
     }
 
@@ -108,15 +107,21 @@ public class Validator
         // The text replacement for cart.headline can be found in the project.properties file
 
         Assert.assertTrue("Unexpected shopping cart headline.", Page.isCartPage());
+        Boolean isMiniCartEmpty = Page.isMiniCartEmpty();
 
-        if (!Page.isMiniCartEmpty())
+        if (!isMiniCartEmpty)
         {
             // Check the presence of the cart table that hold the cart items.
             Assert.assertTrue("Cart table not found", Page.checkExistance(Page.getCartTableLocator()));
 
+            Results cartTotals = Page.find().byId("main")
+                                     .byXPath("./div[contains(@class, 'cart-order-totals')]/table")
+                                     .byXPath("./tbody/tr[@class='order-total']/td[@class='notranslate']");
+
+            Boolean cartTotalsExists = Page.checkExistance(cartTotals);
+
             // Check the presence of the cart totals.
-            Assert.assertTrue("Cart totals not found.",
-                              Page.checkExistance(Page.find().byId("cart-items-form").byCss(".order-totals-table")));
+            Assert.assertTrue("Cart totals not found.", cartTotalsExists);
         }
     }
 
@@ -128,7 +133,7 @@ public class Validator
     public static void validateShippingCheckoutStep() throws Exception
     {
         validateCheckOutPage();
-        validateActiveCheckoutStep("step-1");
+        validateActiveCheckoutStep("shipping");
     }
 
     /**
@@ -139,7 +144,7 @@ public class Validator
     public static void validateBillingCheckoutStep() throws Exception
     {
         validateCheckOutPage();
-        validateActiveCheckoutStep("step-2");
+        validateActiveCheckoutStep("billing");
     }
 
     /**
@@ -151,11 +156,17 @@ public class Validator
     public static void validateReviewOrderCheckoutStep() throws Exception
     {
         validateCheckOutPage();
-        validateActiveCheckoutStep("step-3");
+        validateActiveCheckoutStep("summary");
+
         // Check order totals
-        final String orderTotal = Page.getPrimaryContentContainerLocator().byCss(".order-summary-footer .place-order-totals .order-total")
+        final String orderTotal = Page.find().byId("summary")
+                                      .byXPath("./div[contains(@class, 'currentStep')]")
+                                      .byXPath("./div[@class='review-content']/div[@class='order-totals']")
+                                      .byXPath("./table/tbody/tr[@class='order-total']")
                                       .byXPath("./td[2]")
-                                      .asserted("No order totals found.").first().getTextContent().trim();
+                                      .asserted("No order totals found.")
+                                      .first().getTextContent().trim();
+
         Assert.assertTrue("Order totals are not formated correctly: " + orderTotal,
                           RegExUtils.isMatching(orderTotal, Page.PRICE_REGEXP));
     }
@@ -184,12 +195,14 @@ public class Validator
      * @param stepText
      *            the expected text for the active step.
      */
-    private static void validateActiveCheckoutStep(final String expectedStepClass)
+    private static void validateActiveCheckoutStep(String activeStep)
     {
         // Get the text of the active step.
-        Page.getPrimaryContentContainerLocator()
-            .byCss(".checkout-progress-indicator .active." + expectedStepClass)
-            .asserted("Expected active order step '" + expectedStepClass + "' not found.").first();
+        Page.find().byId("checkout-steps")
+            .byXPath("./div/div[@id='" + activeStep + "' and contains(@class, 'active')]")
+            .asserted("Expected active Checkout step '" + activeStep + "' not found.")
+            .first();
+
     }
 
     /**

@@ -7,7 +7,7 @@ import com.demandware.xlt.util.Context;
 /**
  * Open the landing page, browse the catalog. If there's a result grid open a random product's quick or detail view.
  * 
- * @author Matthias Ullrich (Xceptance Software Technologies GmbH)
+ * @author Xiaobai Wang
  */
 public class TBrowse extends AbstractTestCase
 {

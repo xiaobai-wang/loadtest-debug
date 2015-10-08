@@ -13,13 +13,14 @@ import com.demandware.xlt.util.XHR;
 import com.demandware.xlt.validators.Validator;
 import com.gargoylesoftware.htmlunit.html.HtmlElement;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
+import com.xceptance.xlt.api.engine.Session;
 import com.xceptance.xlt.api.util.XltLogger;
 import com.xceptance.xlt.api.util.elementLookup.Results;
 
 /**
  * Open the product detail page for a randomly chosen product.
  * 
- * @author Matthias Ullrich (Xceptance Software Technologies GmbH)
+ * @author Xiaobai Wang
  */
 public class ProductDetailView extends AbstractHtmlPageAction
 {
@@ -40,13 +41,21 @@ public class ProductDetailView extends AbstractHtmlPageAction
     @Override
     protected void doExecute() throws Exception
     {
-        // XltLogger.runTimeLogger.debug("# -- debug -- Body BEGIN");
-        // XltLogger.runTimeLogger.debug(Context.getPage().asXml());
-        // XltLogger.runTimeLogger.debug("# -- debug -- Body END");
 
         // Remember a random product's link URL.
-        // final HtmlElement randomProduct = Page.getRandomProduct();
-        final HtmlElement firstProduct = Page.getFirstProduct();
+        final HtmlElement randomProduct = Page.getRandomProduct();
+
+        // HtmlElement indexedProduct = null;
+        // boolean prodFound = false;
+        // int i = 0;
+        // while (!prodFound && i < 29)
+        // {
+        // indexedProduct = Page.getProductByIndex(i);
+        // String attributeValue = indexedProduct.getAttribute("href");
+        // if (attributeValue.contains("GRH30"))
+        // prodFound = true;
+        // i++;
+        // }
 
         // The 'real' product link is a combination of the current URL
         // parameters (eventually modified by refinement actions) and product
@@ -57,15 +66,34 @@ public class ProductDetailView extends AbstractHtmlPageAction
 
         // Call the product URL.
         // randomProduct.setAttribute("href", randomProduct.getAttribute("href") + hash);
-        // loadPageByClick(randomProduct);
-        loadPageByClick(firstProduct);
+        loadPageByClick(randomProduct);
+        // loadPageByClick(indexedProduct);
+        // loadPageByClick(firstProduct);
+
+        if (currentUrl.toString().contains("http://shop.gopro.com/hero4"))
+        {
+            HtmlElement aOrbTest = Page.find().byId("pdpMain")
+                                       .byXPath("./div[@class='pdpTop']/div[@class='fixed']")
+                                       .single();
+            if (aOrbTest != null)
+            {
+                Session.logEvent("AssertionError Thrown: Not handled Camera test encountered: ", Context.getPage().getUrl()
+                                                                                                        .toExternalForm());
+
+                // Log the failed attempt of the browsing round.
+                XltLogger.runTimeLogger.debug("AssertionError Thrown: Not handled Camera test encountered.");
+                Assert.fail("Not handled Camera test encountered");
+
+            } // if aOrbTEst
+
+        } // if hero4
 
         // Load the product navigation.
         if (getProductNavigationLocator().exists())
         {
             productNav();
         }
-    }
+    } // doExecute
 
     /**
      * Perform product navigation AJAX calls.

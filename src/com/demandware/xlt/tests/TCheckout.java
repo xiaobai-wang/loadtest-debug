@@ -17,7 +17,7 @@ import com.demandware.xlt.util.Context;
  * Open the landing page, register account if necessary and browse the catalog to a random product. Configure this
  * product, add it to the cart and process the checkout steps but do not place the order finally.
  * 
- * @author Matthias Ullrich (Xceptance Software Technologies GmbH)
+ * @author Xiaobai Wang
  */
 public class TCheckout extends AbstractTestCase
 {

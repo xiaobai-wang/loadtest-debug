@@ -57,7 +57,7 @@ public class COBilling extends AbstractHtmlPageAction
         }
 
         // Submit the billing form.
-        final HtmlElement submitButton = Page.find().byXPath("id('dwfrm_billing')/div/button[@name='dwfrm_billing_save']")
+        final HtmlElement submitButton = Page.find().byXPath("id('dwfrm_billing')/div/button[@name='dwfrm_billing_saveBilling']")
                                              .asserted("No billing submit button found on page.").single();
         loadPageByClick(submitButton);
     }
@@ -76,10 +76,10 @@ public class COBilling extends AbstractHtmlPageAction
         final CreditCard cc = Context.getCreditCard();
 
         // Enter email address.
-        FormUtils.setInputValueByID("dwfrm_billing_billingAddress_email_emailAddress", account.getEmail());
+        // FormUtils.setInputValueByID("dwfrm_billing_billingAddress_email_emailAddress", account.getEmail());
 
         // Ensure that no newsletter is requested.
-        FormUtils.checkCheckboxByID("dwfrm_billing_billingAddress_addToEmailList", false);
+        // FormUtils.checkCheckboxByID("dwfrm_billing_billingAddress_addToEmailList", false);
 
         // Fill the payment form.
         FormUtils.setInputValueByID("dwfrm_billing_paymentMethods_creditCard_owner", account.getFirstName() + " " + account.getLastName());

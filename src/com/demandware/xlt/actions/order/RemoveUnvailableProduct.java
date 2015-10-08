@@ -14,7 +14,7 @@ import com.xceptance.xlt.api.util.elementLookup.HPU;
  * Removes an unavailable product from the shopping cart. Unavailable products might have a price 'N/A' or are marked as
  * 'Out of Stock'.
  * 
- * @author Matthias Ullrich (Xceptance Software Technologies GmbH)
+ * @author Xiaobai Wang
  */
 public class RemoveUnvailableProduct extends AbstractHtmlPageAction
 {

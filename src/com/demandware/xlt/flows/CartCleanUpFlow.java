@@ -11,7 +11,7 @@ import com.demandware.xlt.util.SafetyBreak;
  * Get a clean cart for checkout by removing as unavailable marked items as well as to stay outside any block cart
  * totals areas.
  * 
- * @author Matthias Ullrich (Xceptance Software Technologies GmbH)
+ * @author Xiaobai Wang
  */
 public class CartCleanUpFlow extends AbstractFlow
 {
@@ -34,7 +34,8 @@ public class CartCleanUpFlow extends AbstractFlow
      */
     private static boolean hasOutOfStockItemsInCart()
     {
-        return Page.checkExistance(Page.getOutOfStockCartItems());
+        Boolean hasOutOfStockItemsInCart = Page.checkExistance(Page.getOutOfStockCartItems());
+        return hasOutOfStockItemsInCart;
     }
 
     /**
@@ -112,7 +113,10 @@ public class CartCleanUpFlow extends AbstractFlow
      */
     private boolean isInvalidCart()
     {
-        return hasOutOfStockItemsInCart() || ChangeLineItemQuantity.isInInvalidPriceRange();
+        Boolean hasOutOfStockItemsInCart = hasOutOfStockItemsInCart();
+        Boolean isInvalidPriceRange = ChangeLineItemQuantity.isInInvalidPriceRange();
+
+        return hasOutOfStockItemsInCart || isInvalidPriceRange;
     }
 
     /**

@@ -6,6 +6,12 @@ import org.junit.Assert;
 import com.demandware.xlt.actions.Homepage;
 import com.demandware.xlt.util.Context;
 
+/**
+ * Visit the home page of the web site.
+ * 
+ * @author Xiaobai Wang
+ */
+
 public class VisitFlow extends AbstractFlow
 {
     /**

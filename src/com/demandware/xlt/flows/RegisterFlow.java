@@ -8,7 +8,7 @@ import com.demandware.xlt.util.Context;
 /**
  * Registers a new customer.
  * 
- * @author Matthias Ullrich (Xceptance Software Technologies GmbH)
+ * @author Xiaobai Wang
  */
 public class RegisterFlow extends AbstractFlow
 {

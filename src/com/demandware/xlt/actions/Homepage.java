@@ -11,7 +11,7 @@ import com.demandware.xlt.validators.Validator;
 /**
  * Opens the start page.
  * 
- * @author Matthias Ullrich (Xceptance Software Technologies GmbH)
+ * @author Xiaobai Wang
  */
 public class Homepage extends AbstractHtmlPageAction
 {

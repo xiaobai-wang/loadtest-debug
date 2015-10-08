@@ -7,7 +7,7 @@ import com.demandware.xlt.flows.VisitFlow;
 /**
  * Open the landing page and browse the catalog to a random product. Configure this product and add it to the cart.
  * 
- * @author Matthias Ullrich (Xceptance Software Technologies GmbH)
+ * @author Xiaobai Wang
  */
 public class TAddToCart extends AbstractTestCase
 {

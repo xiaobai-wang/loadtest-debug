@@ -3,7 +3,10 @@ package com.demandware.xlt.util;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
+import com.gargoylesoftware.htmlunit.WebResponse;
 import com.gargoylesoftware.htmlunit.html.HtmlElement;
 import com.xceptance.common.util.RegExUtils;
 import com.xceptance.xlt.api.engine.Session;
@@ -15,7 +18,7 @@ import com.xceptance.xlt.api.util.elementLookup.Results;
 /**
  * Central class to access or retrieve information from the current page.
  * 
- * @author Bernd Weigel (Xceptance Software Technologies GmbH)
+ * @author Xiaobai Wang
  */
 public class Page
 {
@@ -114,10 +117,11 @@ public class Page
      * Returns whether or not the mini cart is empty.
      * 
      * @return <code>true</code> if the mini cart is empty, <code>false</code> otherwise
+     * @throws Exception
      */
-    public static boolean isMiniCartEmpty()
+    public static boolean isMiniCartEmpty() throws Exception
     {
-        return getItemsInMiniCart() == 0;
+        return getNumItemsInMiniCartByAjax() == 0;
     }
 
     /**
@@ -184,11 +188,11 @@ public class Page
     {
         // Try exact lookup first.
         Results appResources = find().byXPath("(id('wrapper')|id('" + MAIN_CONTAINER_ID
-                                                  + "'))/script[not(@src) and contains(. ,'appResources')]");
+                                              + "'))/script[not(@src) and contains(. ,'app.urls')]");
         if (!appResources.exists())
         {
             // If that failed, be a little more fuzzy but also CPU intensive.
-            appResources = find().byXPath("/html/body//script[not(@src) and contains(. ,'appResources')]");
+            appResources = find().byXPath("/html/body//script[not(@src) and contains(. ,'app.urls')]");
             Session.logEvent("app.urls at non expected position. Check for defective HTML.", Context.getPage().getUrl().toExternalForm());
         }
 
@@ -338,7 +342,7 @@ public class Page
 
 
         // /div[@class = 'camera-twoX-wrapper')]/div/div[@class = 'twoXCameras')]
-        if (myURL.equals("http://shop.gopro.com/cameras"))
+        if (myURL.contains("cameras"))
         {
             // HtmlElement test1 = find().byId("main").asserted("not found").first();
             // HtmlElement test2 = find().byId("main").byXPath("./div").asserted("not found").first();
@@ -448,7 +452,7 @@ public class Page
 
         By myFound = find();
 
-        if (myURL.equals("http://shop.gopro.com/cameras"))
+        if (myURL.contains("cameras"))
         {
             productSearchContainer = find().byId("main")
                                            .byXPath("./div[@class='camera-landing']/div[@class='camera-twoX-wrapper']/div/div[@class='twoXCameras']")
@@ -471,6 +475,39 @@ public class Page
          */
 
         return productSearchContainer.random();
+
+    }
+
+    /**
+     * Get a product link by an index number in the list from the product grid page.
+     * 
+     * @return a product link at an index from the grid
+     * @throws AssertionError
+     *             if there is no such link available on the page
+     */
+    public static HtmlElement getProductByIndex(int idx) throws AssertionError
+    {
+
+        String myURL = Context.getPage().getUrl().toString();
+        Results productSearchContainer;
+
+        By myFound = find();
+
+        if (myURL.contains("cameras"))
+        {
+            productSearchContainer = find().byId("main")
+                                           .byXPath("./div[@class='camera-landing']/div[@class='camera-twoX-wrapper']/div/div[@class='twoXCameras']")
+                                           .byXPath(".//a[contains(@href, 'http')]")
+                                           .asserted("No product found.");
+        }
+        else
+        {
+            productSearchContainer = myFound.byId("search-result-items")
+                                            .byXPath(".//a[contains(@href, 'http')]")
+                                            .asserted("No product found");
+        }
+
+        return productSearchContainer.index(idx);
 
     }
 
@@ -748,91 +785,42 @@ public class Page
         }
 
         // Get product add-to-cart area and lookup elements just inside it.
-        String myURL = Context.getPage().getUrl().toString();
-        Results productSearchContainer;
+        final HtmlElement product = getSingleProductContainerLocator().asserted("No product found on Page")
+                                                                      .byCss(".product-add-to-cart")
+                                                                      .single();
+        final By findInProduct = HPU.find().in(product);
 
-        if (myURL.contains("http://shop.gopro.com/hero4"))
+        // Get the product's price and check if it's of a valid format.
+        final Results priceElement = findInProduct.byCss("form > fieldset > .product-price > .price-sales");
+        if (!priceElement.exists() || !RegExUtils.isMatching(priceElement.single().getTextContent().trim(), PRICE_REGEXP))
         {
-            productSearchContainer = find().byId("pdpMain").asserted("No product found.");
+            Session.logEvent("Product has no or invalid price", Context.getPage().getUrl().toExternalForm());
+            return false;
+        }
 
-            XltLogger.runTimeLogger.debug("# -- debug -- Body BEGIN");
-            XltLogger.runTimeLogger.debug(Context.getPage().asXml());
-            XltLogger.runTimeLogger.debug("# -- debug -- Body END");
+        // Get the product's availability message and check if it is marked as 'In Stock'. No availability message
+        // is also valid.
+        final Results currentAvailabilityMsg = findInProduct.byCss("form > fieldset .availability > .value > .availability-msg");
+        // final HtmlElement currentAvailabilityMsgEle = currentAvailabilityMsg.first();
+        // final String currentAvailabilityMsgText = currentAvailabilityMsg.single().getTextContent().trim();
+        // final String expectedAvailabilityMessage = Context.getLanguageSpecificText("product.availabilityMsg");
+        final String expectedAvailabilityMessage = "Availability: In Stock\nUsually ships within 24 hrs";
 
-            XltLogger.runTimeLogger.debug("# Page output from url: " + myURL);
-            HtmlElement t4 = null;
+        if (currentAvailabilityMsg.exists()
+            && !expectedAvailabilityMessage.equals(currentAvailabilityMsg.single().getTextContent().trim()))
+        {
+            Session.logEvent("Availability message does not match: " + expectedAvailabilityMessage, Context.getPage().getUrl()
+                                                                                                          .toExternalForm());
+            return false;
+        }
 
-            try
-            {
-                HtmlElement t1 = find().byId("pdpMain").asserted("No product found.").single();
-                HtmlElement t2 = find().byId("pdpMain")
-                                       .byXPath("./div[@class='pdpTop']/div[@class='fixed']")
-                                       .asserted("No product found.")
-                                       .single();
+        // Check that the Add(-All)-To-Cart button is not disabled.
+        if (!checkXPathExistanceInPage("id('add-to-cart')[not(@disabled)]"))
+        {
+            Session.logEvent("Add-to-cart button is disabled.", Context.getPage().getUrl().toExternalForm());
+            return false;
+        }
 
-                HtmlElement t3 = find().byId("pdpMain")
-                                       .byXPath("./div[@class='pdpTop']/div[@class='fixed']/div[contains(@class, 'product-col-2')]")
-                                       .asserted("No product found.")
-                                       .single();
-
-                t4 = find().byId("pdpMain")
-                           .byXPath("./div[@class='pdpTop']/div[@class='fixed']/div[contains(@class, 'product-col-2')]")
-                           .byXPath("./div[@class='product-add-to-cart'])]")
-                                       .asserted("No product found.")
-                                       .single();
-
-            }
-            catch (Throwable e)
-            {
-
-                // Log the failed attempt of the browsing round.
-                XltLogger.runTimeLogger.debug("# Exception Msg: " + e.getMessage());
-            }
-
-            final By findInProduct = HPU.find().in(t4);
-            final Results priceElement = findInProduct.byCss("form>fieldset>.product-price>.price-sales>.price-sales");
-
-            if (!priceElement.exists())
-            {
-                Session.logEvent("Product has no or invalid price", Context.getPage().getUrl().toExternalForm());
-                return false;
-            }
-
-        } // else // {
-
-        // productSearchContainer = find().byId("product-content")
-        // .byXPath(".//a[contains(@href, 'http')]")
-        // .asserted("No product found");
-        // }
-
-        /*
-         * final HtmlElement product = getSingleProductContainerLocator().asserted("No product found on Page")
-         * .byCss(".product-add-to-cart") .single(); final By findInProduct = HPU.find().in(product);
-         * 
-         * // Get the product's price and check if it's of a valid format. final Results priceElement =
-         * findInProduct.byCss("form > fieldset > .product-price > .price-sales"); if (!priceElement.exists() ||
-         * !RegExUtils.isMatching(priceElement.single().getTextContent().trim(), PRICE_REGEXP)) {
-         * Session.logEvent("Product has no or invalid price", Context.getPage().getUrl().toExternalForm()); return
-         * false; }
-         * 
-         * // Get the product's availability message and check if it is marked as 'In Stock'. No availability message is
-         * // also valid. final Results currentAvailabilityMsg =
-         * findInProduct.byCss("form > fieldset .availability > .value > .availability-msg"); final HtmlElement
-         * currentAvailabilityMsgEle = currentAvailabilityMsg.first(); final String currentAvailabilityMsgText =
-         * currentAvailabilityMsgEle.getTextContent().trim(); // final String expectedAvailabilityMessage =
-         * Context.getLanguageSpecificText("product.availabilityMsg"); // final String expectedAvailabilityMessage =
-         * "Availability: In Stock";
-         * 
-         * if (currentAvailabilityMsg.exists() &&
-         * !currentAvailabilityMsgText.equals("Availability: In Stock\nUsually ships within 24 hrs")) {
-         * Session.logEvent("Availability message does not match: " + currentAvailabilityMsgText,
-         * Context.getPage().getUrl().toExternalForm()); return false; }
-         * 
-         * // Check that the Add(-All)-To-Cart button is not disabled. if
-         * (!checkXPathExistanceInPage("id('add-to-cart')[not(@disabled)]")) {
-         * Session.logEvent("Add-to-cart button is disabled.", Context.getPage().getUrl().toExternalForm()); return
-         * false; }
-         */
         return true;
     }
 
@@ -902,8 +890,22 @@ public class Page
     public static int getItemsInMiniCart() throws AssertionError
     {
         // Get text content of cart total summary.
-        final String cartContent = getMiniCartLocator().byCss("div.mini-cart-total a.mini-cart-link span.minicart-quantity")
-                                                       .asserted("No valid mini-cart value found.").single().getTextContent().trim();
+        // final String cartContent =
+        // getMiniCartLocator().byCss("div.mini-cart-total a.mini-cart-link span.minicart-quantity")
+        // .asserted("No valid mini-cart value found.").single().getTextContent().trim();
+
+        Results miniCart = find().byId("weekender-desktop-nav");
+
+        Results miniCartContent = miniCart.byXPath("./div[contains(@class, 'top-nav__secondary__links')]")
+                                          .byXPath("./div[@class='grid']")
+                                          .byXPath("./div[@class='col2']/div/div");
+
+        HtmlElement miniCartElement = miniCartContent.single();
+
+        final String cartContent = miniCartElement.getTextContent().trim();
+        // .byCss("div.top-nav__secondary__links.col4.px0.pr10--t.pr0--l div.grid div.col2 div.pos-a.cur-p div.top-nav__cart-counter.cur-p.rgt-0.pos-a.bgc-red.bdr-10.ta-c.fz-12.lh-14.c-wht.fw-bld.ng-binding")
+        // .asserted("No valid mini-cart value found.")
+        // .single().getTextContent().trim();
 
         // There should be a number that represents the amount of cart items such as "Cart (3)"
         final String countRaw = RegExUtils.getFirstMatch(cartContent, "\\d+");
@@ -920,6 +922,43 @@ public class Page
         }
 
         return 0;
+    }
+
+    /**
+     * Search and returns the number of items in the mini cart. </br><b>An AssertionError is thrown if the cart is not
+     * available on the page.</b>
+     * 
+     * @return the number of items in the mini cart
+     * @throws Exception
+     * @throws AssertionError
+     *             if there is no mini cart available on the page
+     */
+    public static int getNumItemsInMiniCartByAjax() throws Exception
+    {
+        // Get text content of cart total summary.
+        String miniCartUrl = "http://shop.gopro.com/minicartjson";
+
+        // AJAX Call for the search. This is problematic because the response is a json blob
+        WebResponse r = new XHR().url(miniCartUrl)
+                         .param("lang", "en_US")
+                                 .fire();
+
+        JSONObject json = new JSONObject(r.getContentAsString());
+
+        // JSONObject items = json.getJSONObject("items");
+        JSONArray items = json.getJSONArray("items");
+        int numOfItems = items.length();
+        int items_count_total = 0;
+
+        for (int i = 0; i < numOfItems; i++)
+        {
+
+            items_count_total += items.getJSONObject(i).getInt("quantity");
+        }
+
+        System.out.println("items_count_total = " + items_count_total);
+
+        return items_count_total;
     }
 
     // ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -986,9 +1025,16 @@ public class Page
      */
     public static Results getOutOfStockCartItems()
     {
-        return Page.getCartTableLocator()
-                   .byXPath("./tbody/tr[@class='cart-row' and ./td[@class='item-quantity-details' and not(./ul[@class='product-availability-list']/li[@class='is-in-stock' and .='"
-                                + Context.getLanguageSpecificText("product.availabilityMsg") + "'])]]");
+        // Results cartTable = Page.getCartTableLocator();
+
+        // Results outOfStockItems = cartTable.byXPath("./tbody/tr[@class='cart-row']");
+        // Results outOfStockItems1 = outOfStockItems.byXPath("./td[@class='item-details']");
+
+        Results outOfStockItemsinCart = Page.getCartTableLocator()
+                                            .byXPath("./tbody/tr[@class='cart-row' and ./td[@class='item-details' and not(./ul[@class='product-availability-list']/li[@class='is-in-stock' and .='Availability: In Stock'])]]");
+        HtmlElement outOfStockItemsinCartElem = outOfStockItemsinCart.single();
+
+        return outOfStockItemsinCart;
     }
 
     // ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

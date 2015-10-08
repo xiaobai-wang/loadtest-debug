@@ -20,8 +20,15 @@ public class COPlaceOrder extends AbstractHtmlPageAction
     protected void doExecute() throws Exception
     {
         // Click the Submit button to place the order.
-        final HtmlElement submitButton = Page.getPrimaryContentContainerLocator().byCss(".order-summary-footer form button[name='submit']")
-                                             .asserted("Submit button to place the order not found on page.").single();
+        // final HtmlElement submitButton =
+        // Page.getPrimaryContentContainerLocator().byCss(".order-summary-footer form button[name='submit']")
+        // .asserted("Submit button to place the order not found on page.").single();
+        final HtmlElement submitButton = Page.find()
+                                             .byXPath("id('summary')/div[contains(@class, 'currentStep')]")
+                                             .byXPath("./form/button[@name='submit']")
+                                             .asserted("No order submit button found on page.")
+                                             .single();
+
         loadPageByClick(submitButton);
     }
 
